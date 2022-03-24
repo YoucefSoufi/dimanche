@@ -17,10 +17,14 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.dimanche.kick.security.entites.AppUser;
 import com.dimanche.kick.security.filters.JwtAuthenticationFilter;
+import com.dimanche.kick.security.filters.JwtAuthorizationFilter;
 import com.dimanche.kick.security.service.AccountService;
+import com.dimanche.kick.security.util.MessagesSource;
+
 import lombok.AllArgsConstructor;
 
 @Configuration
@@ -29,6 +33,7 @@ import lombok.AllArgsConstructor;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		
 	private AccountService accountService;
+	private MessagesSource messagesSource;
 	
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -43,7 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		http.authorizeRequests().antMatchers("/h2-console/**").permitAll();
 		http.authorizeRequests().anyRequest().authenticated();
 		http.addFilter(new JwtAuthenticationFilter(authenticationManagerBean()));
-
+		http.addFilterBefore(new JwtAuthorizationFilter(messagesSource),UsernamePasswordAuthenticationFilter.class);
 	}
 	
 	@Bean
