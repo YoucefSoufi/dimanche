@@ -1,11 +1,14 @@
 package com.dimanche.kick.security.service;
 
 import java.util.List;
+
+import org.springframework.security.core.userdetails.UserDetailsService;
+
 import com.dimanche.kick.security.entites.AppRole;
 import com.dimanche.kick.security.entites.AppUser;
 import com.dimanche.kick.security.exception.BusinessException;
 
-public interface AccountService {
+public interface AccountService extends  UserDetailsService {
 
 	AppUser addNewUser(AppUser appUser);
 	

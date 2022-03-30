@@ -1,14 +1,25 @@
 package com.dimanche.kick.security.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.dimanche.kick.security.constante.ConstanteMessages;
 import com.dimanche.kick.security.entites.AppRole;
 import com.dimanche.kick.security.entites.AppUser;
 import com.dimanche.kick.security.exception.BusinessException;
 import com.dimanche.kick.security.repository.AppRoleRepository;
 import com.dimanche.kick.security.repository.AppUserRepository;
 import com.dimanche.kick.security.service.AccountService;
+import com.dimanche.kick.security.util.MessagesSource;
 import com.dimanche.kick.security.util.SecurityUtil;
 
 import lombok.AllArgsConstructor;
@@ -22,12 +33,12 @@ public class AccountServiceImpl implements AccountService {
 
 	private AppUserRepository appUserRepository;
 	private AppRoleRepository appRoleRepository;
-	private SecurityUtil securityUtil;
+	private MessagesSource messagesSource;
 
 
 	@Override
 	public AppUser addNewUser(AppUser appUser) {
-		securityUtil.passwordEncoder(appUser);
+		SecurityUtil.passwordEncoder(appUser);
 		return appUserRepository.save(appUser);
 	}
 
@@ -38,9 +49,6 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public void addRoleToUser(String userName, String roleName) {
-//		AppRole appRole = appRoleRepository.findByRoleName(roleName);
-//		AppUser appUser = appUserRepository.findByUserName(userName);
-//		appUser.getAppRoles().add(appRole);
 		
 	}
 
@@ -56,7 +64,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public List<AppUser> addNewUsers(List<AppUser> appUser) {
-		appUser.forEach(n -> {securityUtil.passwordEncoder(n);});
+		appUser.forEach(n -> {SecurityUtil.passwordEncoder(n);});
 		return appUserRepository.saveAll(appUser);
 	}
 
@@ -75,7 +83,16 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AppUser findUserByUserNameWithRoles(String userName) {
-		return appUserRepository.findByUserNameWithRoles(userName).get();
+		return appUserRepository.findByUserNameWithRoles(userName).orElseThrow(() -> new UsernameNotFoundException(ConstanteMessages.USER_NOT_FOND));
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        AppUser user = appUserRepository.findByUserNameWithRoles(username).get();
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        user.getAppRoles().forEach(n -> {authorities.add(new SimpleGrantedAuthority(n.getRoleName()));});
+        return new User(user.getUserName(), user.getPassword(), authorities);
+
 	}
 
 }

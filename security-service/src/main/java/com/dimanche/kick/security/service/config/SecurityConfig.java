@@ -2,7 +2,6 @@ package com.dimanche.kick.security.service.config;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,12 +17,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import com.dimanche.kick.security.constante.ConstanteSecurity;
 import com.dimanche.kick.security.entites.AppUser;
 import com.dimanche.kick.security.filters.JwtAuthenticationFilter;
 import com.dimanche.kick.security.filters.JwtAuthorizationFilter;
 import com.dimanche.kick.security.service.AccountService;
-import com.dimanche.kick.security.util.MessagesSource;
 
 import lombok.AllArgsConstructor;
 
@@ -33,7 +31,8 @@ import lombok.AllArgsConstructor;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		
 	private AccountService accountService;
-	private MessagesSource messagesSource;
+    private final JwtAuthorizationFilter jwtAuthorizationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -45,10 +44,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		http.csrf().disable();
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		http.headers().frameOptions().disable();
-		http.authorizeRequests().antMatchers("/h2-console/**").permitAll();
+		http.authorizeRequests().antMatchers("/auth/**",ConstanteSecurity.REFRESH_TOKEN_URL).permitAll();
 		http.authorizeRequests().anyRequest().authenticated();
-		http.addFilter(new JwtAuthenticationFilter(authenticationManagerBean()));
-		http.addFilterBefore(new JwtAuthorizationFilter(messagesSource),UsernamePasswordAuthenticationFilter.class);
+		http.addFilterBefore(jwtAuthenticationFilter,UsernamePasswordAuthenticationFilter.class);
+		http.addFilterBefore(jwtAuthorizationFilter,UsernamePasswordAuthenticationFilter.class);
 	}
 	
 	@Bean

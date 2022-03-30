@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,8 +28,8 @@ public class AccountRestController {
 		return new ResponseEntity<>(appAccountService.users(),HttpStatus.OK);
 	}
 	
-	
 	@PostMapping("/users")
+	@PostAuthorize("hasAuthority('Admin')")
 	public ResponseEntity<AppUser> addAppUsers(@RequestBody AppUser appUser){
 		return new ResponseEntity<>(appAccountService.addNewUser(appUser),HttpStatus.CREATED);
 	}
